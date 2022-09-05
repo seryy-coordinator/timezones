@@ -1,12 +1,17 @@
 <template>
   <div id="app">
-    <h1 class="text-3xl font-bold underline">Hello world!</h1>
+    <TimezoneList />
   </div>
 </template>
 
 <script>
+import TimezoneList from "./components/TimezoneList.vue";
+
 export default {
   name: "App",
+  components: {
+    TimezoneList,
+  },
 };
 </script>
 
