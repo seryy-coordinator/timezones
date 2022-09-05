@@ -20,9 +20,14 @@
         Add
       </button>
     </div>
-    <div
+    <draggable
       v-if="selected.length"
+      :value="selected"
+      :animation="250"
+      tag="div"
+      handle=".draggable-elements-handle"
       class="flex gap-8 flex-grow items-start flex-wrap"
+      @input="reorderTimeZones"
     >
       <Timezone
         v-for="clock in selected"
@@ -37,7 +42,7 @@
         @remove="confirmRemoving"
         @sort="sort"
       />
-    </div>
+    </draggable>
     <div v-else class="flex justify-center items-center flex-grow">
       <div class="border border-blue-200 rounded p-8 bg-blue-50 text-center">
         <p>We do not have selected timezones :(</p>
@@ -76,6 +81,7 @@
 
 <script>
 import moment from "moment-timezone";
+import draggable from "vuedraggable";
 import ConfirmRemovingModal from "./ConfirmRemovingModal.vue";
 import SelectTimeZoneModal from "./SelectTimeZoneModal.vue";
 import MySwitch from "./MySwitch.vue";
@@ -84,6 +90,7 @@ import Timezone from "./Timezone.vue";
 export default {
   name: "TimezoneList",
   components: {
+    draggable,
     ConfirmRemovingModal,
     SelectTimeZoneModal,
     MySwitch,
@@ -153,8 +160,9 @@ export default {
     useRecommended() {
       // ToDo
     },
-    reorderTimeZones() {
-      // ToDo
+    reorderTimeZones(list) {
+      this.selected = list;
+      this.save();
     },
     confirmRemoving(item) {
       this.removed = item;

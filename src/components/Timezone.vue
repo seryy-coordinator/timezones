@@ -10,7 +10,7 @@
       <span class="material-icons">delete</span>
     </button>
     <span
-      class="material-icons absolute top-0 left-0 cursor-pointer text-gray-400"
+      class="draggable-elements-handle material-icons absolute top-0 left-0 cursor-pointer text-gray-400"
       >drag_indicator</span
     >
     <div class="py-4 px-8 border-b border-gray-200">
