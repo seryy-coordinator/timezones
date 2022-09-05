@@ -1,32 +1,17 @@
 <template>
-  <div class="px-20 py-10 flex flex-col min-h-screen">
+  <div class="px-20 py-6 flex flex-col min-h-screen">
     <div class="mb-6 flex items-center gap-4">
-      <h1 class="font-bold text-3xl uppercase mr-auto">Timezones helper</h1>
-      <div class="flex items-center">
-        <div class="mr-1 font-medium text-sm">Format:</div>
-        <div
-          :class="
-            format === 'ru-Ru'
-              ? 'bg-blue-400 text-white'
-              : 'bg-gray-400 opacity-20'
-          "
-          class="flex p-1 cursor-pointer font-bold"
-          @click="selectFormat('ru-Ru')"
-        >
-          RU
-        </div>
-        <div
-          :class="
-            format === 'en-En'
-              ? 'bg-blue-400 text-white'
-              : 'bg-gray-400 opacity-20'
-          "
-          class="flex p-1 cursor-pointer font-bold"
-          @click="selectFormat('en-En')"
-        >
-          EN
-        </div>
-      </div>
+      <h1 class="font-bold text-3xl uppercase mr-auto text-gray-700">
+        Timezones helper
+      </h1>
+      <MySwitch
+        v-model="format"
+        :options="[
+          { label: 'RU', value: 'ru-Ru' },
+          { label: 'EN', value: 'en-En' },
+        ]"
+        label="Format"
+      />
       <button
         class="py-1 px-3 border-2 border-blue-400 hover:border-blue-600 text-blue-500 text-sm font-medium rounded-sm flex items-center gap-1"
         @click="searchDisplayed = true"
@@ -44,9 +29,13 @@
         :key="clock.title"
         :value="clock"
         :time="time"
-        :time-points="timePoints"
+        :time-points="getTimePoints"
         :format="format"
+        :sorting="sorting"
+        @add-time-point="addTimePoint"
+        @remove-time-point="removeTimePoint"
         @remove="confirmRemoving"
+        @sort="sort"
       />
     </div>
     <div v-else class="flex justify-center items-center flex-grow">
@@ -86,8 +75,10 @@
 </template>
 
 <script>
+import moment from "moment-timezone";
 import ConfirmRemovingModal from "./ConfirmRemovingModal.vue";
 import SelectTimeZoneModal from "./SelectTimeZoneModal.vue";
+import MySwitch from "./MySwitch.vue";
 import Timezone from "./Timezone.vue";
 
 export default {
@@ -95,6 +86,7 @@ export default {
   components: {
     ConfirmRemovingModal,
     SelectTimeZoneModal,
+    MySwitch,
     Timezone,
   },
   data: () => ({
@@ -105,7 +97,27 @@ export default {
     format: "ru-Ru",
     removed: null,
     searchDisplayed: false,
+    sorting: { timeZone: "" },
   }),
+  computed: {
+    getTimePoints() {
+      if (this.sorting.timeZone) {
+        return this.timePoints
+          .map((item) => ({
+            ...item,
+            sort: moment
+              .tz(item.time, "HH:mm", item.timeZone)
+              .tz(this.sorting.timeZone)
+              .format("HH:mm"),
+          }))
+          .sort(({ sort: a }, { sort: b }) => {
+            const result = this.sorting.direction === "asc" ? a > b : a < b;
+            return result ? 1 : -1;
+          });
+      }
+      return this.timePoints;
+    },
+  },
   created() {
     this.load();
     this.setTimeByTimer();
@@ -116,10 +128,13 @@ export default {
       this.timePoints = timePoints.sort((a, b) => a - b);
       this.selected = JSON.parse(localStorage.getItem("timeZones")) || [];
       this.format = localStorage.getItem("format") || "ru-Ru";
+      this.sorting = JSON.parse(localStorage.getItem("sorting")) || {};
     },
     addTimezone(newTimeZone) {
-      this.selected.push(newTimeZone);
-      this.save();
+      if (!this.selected.includes(newTimeZone)) {
+        this.selected.push(newTimeZone);
+        this.save();
+      }
     },
     selectTimezone(value) {
       this.addTimezone(value);
@@ -149,10 +164,28 @@ export default {
       this.removed = null;
       this.save();
     },
+    addTimePoint(timePoint) {
+      this.timePoints.push(timePoint);
+      this.save();
+    },
+    removeTimePoint(timePoint) {
+      this.timePoints = this.timePoints.filter(
+        ({ title, timeZone, time }) =>
+          timePoint.title !== title ||
+          timePoint.timeZone !== timeZone ||
+          timePoint.time !== time
+      );
+      this.save();
+    },
+    sort(sorting) {
+      this.sorting = sorting;
+      this.save();
+    },
     save() {
       localStorage.setItem("timeZones", JSON.stringify(this.selected));
       localStorage.setItem("timePoints", JSON.stringify(this.timePoints));
       localStorage.setItem("format", this.format);
+      localStorage.setItem("sorting", JSON.stringify(this.sorting));
     },
   },
 };

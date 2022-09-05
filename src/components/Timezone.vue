@@ -23,10 +23,20 @@
       <div class="flex justify-end text-xs text-gray-600">{{ getDate }}</div>
     </div>
     <div class="p-4 flex flex-col gap-1">
-      <div class="flex items-center justify-center">
+      <div class="flex items-center justify-center gap-2">
         <h3 class="text-xl font-bold mb-2">Time points:</h3>
+        <MySwitch
+          :value="sorting.timeZone === value ? sorting.direction : ''"
+          :options="[
+            { icon: 'south', value: 'asc' },
+            { icon: 'north', value: 'desk' },
+          ]"
+          icon="sort_by_alpha"
+          class="ml-auto"
+          @input="$emit('sort', { timeZone: value, direction: $event })"
+        />
         <button
-          class="p-1 bg-blue-400 hover:bg-blue-500 text-white text-sm font-medium rounded-sm flex ml-auto"
+          class="p-1 border-2 border-blue-400 hover:border-blue-600 text-blue-500 text-sm font-medium rounded-sm flex items-center gap-1"
           @click="switchAdditional()"
         >
           <span class="material-icons font-size-16">{{
@@ -34,8 +44,25 @@
           }}</span>
         </button>
       </div>
-      <ul v-if="timePoints.length" class="p-4">
-        <li v-for="timePoint in timePoints" :key="timePoint"></li>
+      <ul v-if="getTimePoints.length" class="px-1 text-gray-600">
+        <li
+          v-for="(item, index) in getTimePoints"
+          :key="index"
+          class="flex items-center gap-1"
+        >
+          <div class="w-32 text-xs italic">{{ item.title }}</div>
+          <div class="font-medium text-lg">{{ item.value }}</div>
+          <span
+            class="material-icons ml-auto font-size-16 cursor-pointer text-gray-500 hover:text-gray-700"
+            @click="editTimePoint(item)"
+            >edit</span
+          >
+          <span
+            class="material-icons font-size-16 cursor-pointer text-red-300 hover:text-red-400"
+            @click="deleteTimePoint(item)"
+            >delete</span
+          >
+        </li>
       </ul>
       <div v-if="additionDisplayed" class="flex items-center gap-2">
         <input
@@ -53,6 +80,7 @@
         />
         <button
           class="py-1 px-2 border-2 border-blue-400 hover:border-blue-600 text-blue-500 text-sm font-medium rounded-sm flex items-center gap-1"
+          @click="addTimePoint()"
         >
           Add
         </button>
@@ -63,9 +91,13 @@
 
 <script>
 import moment from "moment-timezone";
+import MySwitch from "./MySwitch.vue";
 
 export default {
   name: "Timezone",
+  components: {
+    MySwitch,
+  },
   props: {
     value: {
       type: String,
@@ -81,6 +113,10 @@ export default {
     },
     format: {
       type: String,
+      required: true,
+    },
+    sorting: {
+      type: Object,
       required: true,
     },
   },
@@ -116,6 +152,19 @@ export default {
       const format = "ZZ";
       return moment().tz(this.value).format(format);
     },
+    getTimePoints() {
+      const format = this.isEnglishFormat ? "hh:mm A" : "HH:mm";
+      return this.timePoints.map((item) => {
+        const value = moment
+          .tz(item.time, "HH:mm", item.timeZone)
+          .tz(this.value)
+          .format(format);
+        return {
+          ...item,
+          value,
+        };
+      });
+    },
   },
   methods: {
     switchAdditional() {
@@ -126,10 +175,28 @@ export default {
     addTimePoint() {
       const timePoint = {
         title: this.title,
-        time: this.timePoint, // ToDo
+        time: this.timePoint,
+        timeZone: this.value,
       };
       this.$emit("add-time-point", timePoint);
       this.switchAdditional();
+    },
+    updateTimePoint() {
+      // ToDo
+      const timePoint = {
+        title: this.title,
+        time: this.timePoint,
+        timeZone: this.value,
+      };
+      this.$emit("update-time-point", timePoint);
+      this.switchAdditional();
+    },
+    editTimePoint(item) {
+      this.title = item.title;
+      // ToDo
+    },
+    deleteTimePoint(item) {
+      this.$emit("remove-time-point", item);
     },
   },
 };
