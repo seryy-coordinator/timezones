@@ -40,7 +40,7 @@
           @click="switchAdditional()"
         >
           <span class="material-icons font-size-16">{{
-            additionDisplayed ? "remove" : "add"
+            addition ? "remove" : "add"
           }}</span>
         </button>
       </div>
@@ -48,6 +48,7 @@
         <li
           v-for="(item, index) in getTimePoints"
           :key="index"
+          :class="{ 'text-gray-900': item.isLocal }"
           class="flex items-center gap-1"
         >
           <div class="w-32 text-xs italic">{{ item.title }}</div>
@@ -64,13 +65,13 @@
           >
         </li>
       </ul>
-      <div v-if="additionDisplayed" class="flex items-center gap-2">
+      <div v-if="addition || editing" class="flex items-center gap-1">
         <input
           v-model="title"
           type="text"
-          maxlength="15"
+          maxlength="20"
           placeholder="Type a title"
-          class="py-1 px-3 border border-grey-100 rounded-sm w-40"
+          class="py-1 px-3 border border-grey-100 rounded-sm w-32"
         />
         <input
           v-model="timePoint"
@@ -79,10 +80,13 @@
           class="py-1 px-3 border border-grey-100 rounded-sm"
         />
         <button
-          class="py-1 px-2 border-2 border-blue-400 hover:border-blue-600 text-blue-500 text-sm font-medium rounded-sm flex items-center gap-1"
-          @click="addTimePoint()"
+          class="py-1 px-2 border-2 border-blue-400 hover:border-blue-600 text-blue-500 text-sm font-medium rounded-sm flex items-center gap-1 ml-auto"
+          @click="addition ? addTimePoint() : updateTimePoint()"
         >
-          Add
+          {{ addition ? "Add" : "Save" }}
+        </button>
+        <button class="flex" @click="cancel()">
+          <span class="material-icons flex">close</span>
         </button>
       </div>
     </div>
@@ -121,7 +125,9 @@ export default {
     },
   },
   data: () => ({
-    additionDisplayed: false,
+    addition: false,
+    editing: false,
+    selected: null,
     timePoint: "",
     title: "",
   }),
@@ -154,21 +160,25 @@ export default {
     },
     getTimePoints() {
       const format = this.isEnglishFormat ? "hh:mm A" : "HH:mm";
-      return this.timePoints.map((item) => {
-        const value = moment
-          .tz(item.time, "HH:mm", item.timeZone)
-          .tz(this.value)
-          .format(format);
-        return {
-          ...item,
-          value,
-        };
-      });
+      return this.timePoints
+        .filter(({ time }) => time !== this.selected?.time)
+        .map((item) => {
+          const value = moment
+            .tz(item.time, "HH:mm", item.timeZone)
+            .tz(this.value)
+            .format(format);
+          return {
+            ...item,
+            value,
+            isLocal: item.timeZone === this.value,
+          };
+        });
     },
   },
   methods: {
     switchAdditional() {
-      this.additionDisplayed = !this.additionDisplayed;
+      this.selected = null;
+      this.addition = !this.addition;
       this.title = "";
       this.timePoint = "";
     },
@@ -182,21 +192,32 @@ export default {
       this.switchAdditional();
     },
     updateTimePoint() {
-      // ToDo
       const timePoint = {
         title: this.title,
         time: this.timePoint,
         timeZone: this.value,
       };
-      this.$emit("update-time-point", timePoint);
-      this.switchAdditional();
+      this.$emit("update-time-point", {
+        newValue: timePoint,
+        oldValue: this.selected,
+      });
+      this.cancel();
     },
     editTimePoint(item) {
       this.title = item.title;
-      // ToDo
+      this.timePoint = item.value;
+      this.editing = true;
+      this.selected = item;
     },
     deleteTimePoint(item) {
       this.$emit("remove-time-point", item);
+    },
+    cancel() {
+      this.selected = null;
+      this.editing = false;
+      this.addition = false;
+      this.title = "";
+      this.timePoint = "";
     },
   },
 };

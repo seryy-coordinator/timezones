@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center gap1">
+  <div class="flex items-center gap1 gap-[1px]">
     <div v-if="label" class="mr-1 font-medium text-sm">{{ label }}:</div>
     <span v-if="icon" class="mr-1 material-icons">{{ icon }}</span>
     <div

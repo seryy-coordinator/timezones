@@ -1,5 +1,5 @@
 <template>
-  <div class="px-20 py-6 flex flex-col min-h-screen">
+  <div class="px-20 pt-6 pb-2 flex flex-col min-h-screen">
     <div class="mb-6 flex items-center gap-4">
       <h1 class="font-bold text-3xl uppercase mr-auto text-gray-700">
         Timezones helper
@@ -21,8 +21,8 @@
       </button>
     </div>
     <draggable
-      v-if="selected.length"
-      :value="selected"
+      v-if="timeZones.length"
+      :value="timeZones"
       :animation="250"
       tag="div"
       handle=".draggable-elements-handle"
@@ -30,7 +30,7 @@
       @input="reorderTimeZones"
     >
       <Timezone
-        v-for="clock in selected"
+        v-for="clock in timeZones"
         :key="clock.title"
         :value="clock"
         :time="time"
@@ -38,6 +38,7 @@
         :format="format"
         :sorting="sorting"
         @add-time-point="addTimePoint"
+        @update-time-point="updateTimePoint"
         @remove-time-point="removeTimePoint"
         @remove="confirmRemoving"
         @sort="sort"
@@ -58,13 +59,39 @@
         </button>
       </div>
     </div>
-    <div class="flex items-center justify-center p-1">
-      <button
-        class="hover:text-blue-600 text-blue-500 underline"
-        @click="useRecommended()"
+    <div class="flex items-center justify-center mt-4 gap-8">
+      <div
+        v-if="getRecommendedTimeZones.length"
+        class="flex items-center gap-3"
       >
-        Use recommend settings
-      </button>
+        <p class="text-sm font-medium">Recommended time zones:</p>
+        <div class="flex items-center gap-2">
+          <button
+            v-for="timeZone in getRecommendedTimeZones"
+            :key="timeZone.value"
+            class="underline hover:text-blue-600 text-blue-500"
+            @click="addTimezone(timeZone.value)"
+          >
+            {{ timeZone.title }}
+          </button>
+        </div>
+      </div>
+      <div
+        v-if="getRecommendedTimePoints.length"
+        class="flex items-center gap-3"
+      >
+        <p class="text-sm font-medium">Recommended time points:</p>
+        <div class="flex items-center gap-2">
+          <button
+            v-for="timePoint in getRecommendedTimePoints"
+            :key="timePoint.time"
+            class="underline hover:text-blue-600 text-blue-500"
+            @click="addTimePoint(timePoint)"
+          >
+            {{ timePoint.title }}
+          </button>
+        </div>
+      </div>
     </div>
     <ConfirmRemovingModal
       v-if="removed"
@@ -86,6 +113,22 @@ import ConfirmRemovingModal from "./ConfirmRemovingModal.vue";
 import SelectTimeZoneModal from "./SelectTimeZoneModal.vue";
 import MySwitch from "./MySwitch.vue";
 import Timezone from "./Timezone.vue";
+import { refactorTimeZones } from "../api/utils";
+
+const recommendedTimeZones = refactorTimeZones([
+  "Asia/Tbilisi",
+  "Europe/Minsk",
+  "Europe/London",
+  "Asia/Ho_Chi_Minh",
+  "Asia/Kuala_Lumpur",
+  "America/Chicago",
+]);
+
+const recommendedTimePoints = [
+  { title: "Start work (Minsk)", time: "09:00", timeZone: "Europe/Minsk" },
+  { title: "Lunch (Minsk)", time: "13:00", timeZone: "Europe/Minsk" },
+  { title: "End work (Minsk)", time: "18:00", timeZone: "Europe/Minsk" },
+];
 
 export default {
   name: "TimezoneList",
@@ -97,7 +140,7 @@ export default {
     Timezone,
   },
   data: () => ({
-    selected: [],
+    timeZones: [],
     timePoints: [],
     current: Intl.DateTimeFormat().resolvedOptions().timeZone,
     time: new Date(),
@@ -124,6 +167,19 @@ export default {
       }
       return this.timePoints;
     },
+    getRecommendedTimeZones() {
+      return recommendedTimeZones.filter(
+        ({ value }) => !this.timeZones.includes(value)
+      );
+    },
+    getRecommendedTimePoints() {
+      return recommendedTimePoints.filter(
+        ({ time, timeZone }) =>
+          !this.timePoints.some(
+            (item) => item.time === time && item.timeZone === timeZone
+          )
+      );
+    },
   },
   created() {
     this.load();
@@ -133,13 +189,13 @@ export default {
     load() {
       const timePoints = JSON.parse(localStorage.getItem("timePoints")) || [];
       this.timePoints = timePoints.sort((a, b) => a - b);
-      this.selected = JSON.parse(localStorage.getItem("timeZones")) || [];
+      this.timeZones = JSON.parse(localStorage.getItem("timeZones")) || [];
       this.format = localStorage.getItem("format") || "ru-Ru";
       this.sorting = JSON.parse(localStorage.getItem("sorting")) || {};
     },
     addTimezone(newTimeZone) {
-      if (!this.selected.includes(newTimeZone)) {
-        this.selected.push(newTimeZone);
+      if (!this.timeZones.includes(newTimeZone)) {
+        this.timeZones.push(newTimeZone);
         this.save();
       }
     },
@@ -161,19 +217,27 @@ export default {
       // ToDo
     },
     reorderTimeZones(list) {
-      this.selected = list;
+      this.timeZones = list;
       this.save();
     },
     confirmRemoving(item) {
       this.removed = item;
     },
     removeTimezone() {
-      this.selected = this.selected.filter((item) => item !== this.removed);
+      this.timeZones = this.timeZones.filter((item) => item !== this.removed);
       this.removed = null;
       this.save();
     },
     addTimePoint(timePoint) {
       this.timePoints.push(timePoint);
+      this.save();
+    },
+    updateTimePoint({ newValue, oldValue }) {
+      const index = this.timePoints.findIndex(
+        ({ time, timeZone }) =>
+          time === oldValue.time && timeZone === oldValue.timeZone
+      );
+      this.timePoints.splice(index, 1, newValue);
       this.save();
     },
     removeTimePoint(timePoint) {
@@ -190,7 +254,7 @@ export default {
       this.save();
     },
     save() {
-      localStorage.setItem("timeZones", JSON.stringify(this.selected));
+      localStorage.setItem("timeZones", JSON.stringify(this.timeZones));
       localStorage.setItem("timePoints", JSON.stringify(this.timePoints));
       localStorage.setItem("format", this.format);
       localStorage.setItem("sorting", JSON.stringify(this.sorting));

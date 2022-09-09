@@ -49,11 +49,9 @@
 <script>
 import moment from "moment-timezone";
 import Modal from "./Modal.vue";
+import { refactorTimeZones } from "../api/utils";
 
-const timeZones = moment.tz.names().map((value) => ({
-  title: value.slice(value.indexOf("/") + 1).replaceAll("_", " "),
-  value,
-}));
+const timeZones = refactorTimeZones(moment.tz.names());
 
 export default {
   name: "SelectTimeZoneModal",
