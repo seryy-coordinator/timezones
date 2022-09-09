@@ -1,7 +1,8 @@
 <template>
-  <div class="px-20 pt-6 pb-2 flex flex-col min-h-screen">
-    <div class="mb-6 flex items-center gap-4">
-      <h1 class="font-bold text-3xl uppercase mr-auto text-gray-700">
+  <div class="md:px-20 px-2 pt-6 pb-2 flex flex-col min-h-screen">
+    <div class="mb-6 flex flex-wrap items-center justify-center gap-4">
+      <img src="@/assets/images/Earth.png" alt="Earth" class="w-12 h-12" />
+      <h1 class="font-bold text-3xl uppercase md:mr-auto text-gray-700">
         Timezones helper
       </h1>
       <MySwitch
@@ -26,7 +27,7 @@
       :animation="250"
       tag="div"
       handle=".draggable-elements-handle"
-      class="flex gap-8 flex-grow items-start flex-wrap"
+      class="flex gap-8 flex-grow items-start justify-center flex-wrap"
       @input="reorderTimeZones"
     >
       <Timezone
@@ -37,6 +38,7 @@
         :time-points="getTimePoints"
         :format="format"
         :sorting="sorting"
+        :single="timeZones.length === 1"
         @add-time-point="addTimePoint"
         @update-time-point="updateTimePoint"
         @remove-time-point="removeTimePoint"
@@ -46,11 +48,12 @@
     </draggable>
     <div v-else class="flex justify-center items-center flex-grow">
       <div class="border border-blue-200 rounded p-8 bg-blue-50 text-center">
-        <p>We do not have selected timezones :(</p>
+        <p>You don't have selected timezones :(</p>
         <p>
-          Our current timezone is <strong class="text-lg">{{ current }}</strong>
+          Your current timezone is
+          <strong class="text-lg">{{ current }}</strong>
         </p>
-        <p class="mb-6">Do you want to <strong>select</strong> it?</p>
+        <p class="mb-3">Do you want to <strong>add</strong> it?</p>
         <button
           class="py-1 px-3 bg-blue-400 hover:bg-blue-500 text-white text-sm font-medium rounded-sm"
           @click="addTimezone(current)"
@@ -59,13 +62,12 @@
         </button>
       </div>
     </div>
-    <div class="flex items-center justify-center mt-4 gap-8">
-      <div
-        v-if="getRecommendedTimeZones.length"
-        class="flex items-center gap-3"
-      >
-        <p class="text-sm font-medium">Recommended time zones:</p>
-        <div class="flex items-center gap-2">
+    <div
+      class="flex flex-wrap items-center justify-center mt-4 gap-x-8 md:gap-y-2 gap-y-5 mx-2"
+    >
+      <div v-if="getRecommendedTimeZones.length" class="flex gap-4">
+        <p class="text-sm font-medium mt-2px">Recommended time zones:</p>
+        <div class="flex flex-wrap justify-end gap-x-3">
           <button
             v-for="timeZone in getRecommendedTimeZones"
             :key="timeZone.value"
@@ -76,12 +78,9 @@
           </button>
         </div>
       </div>
-      <div
-        v-if="getRecommendedTimePoints.length"
-        class="flex items-center gap-3"
-      >
-        <p class="text-sm font-medium">Recommended time points:</p>
-        <div class="flex items-center gap-2">
+      <div v-if="getRecommendedTimePoints.length" class="flex gap-4">
+        <p class="text-sm font-medium mt-2px">Recommended time points:</p>
+        <div class="flex flex-wrap justify-end gap-x-3">
           <button
             v-for="timePoint in getRecommendedTimePoints"
             :key="timePoint.time"
@@ -125,9 +124,9 @@ const recommendedTimeZones = refactorTimeZones([
 ]);
 
 const recommendedTimePoints = [
-  { title: "Start work (Minsk)", time: "09:00", timeZone: "Europe/Minsk" },
-  { title: "Lunch (Minsk)", time: "13:00", timeZone: "Europe/Minsk" },
-  { title: "End work (Minsk)", time: "18:00", timeZone: "Europe/Minsk" },
+  { title: "Start work by Minsk", time: "09:00", timeZone: "Europe/Minsk" },
+  { title: "Lunch by Minsk", time: "13:00", timeZone: "Europe/Minsk" },
+  { title: "End work by Minsk", time: "18:00", timeZone: "Europe/Minsk" },
 ];
 
 export default {
@@ -263,4 +262,8 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+.mt-2px {
+  margin-top: 2px;
+}
+</style>

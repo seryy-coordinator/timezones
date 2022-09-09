@@ -10,6 +10,7 @@
       <span class="material-icons">delete</span>
     </button>
     <span
+      v-if="!single"
       class="draggable-elements-handle material-icons absolute top-0 left-0 cursor-pointer text-gray-400"
       >drag_indicator</span
     >
@@ -28,10 +29,9 @@
         <MySwitch
           :value="sorting.timeZone === value ? sorting.direction : ''"
           :options="[
-            { icon: 'south', value: 'asc' },
-            { icon: 'north', value: 'desk' },
+            { image: 'sort_numeric_ascending.svg', value: 'asc' },
+            { image: 'sort_numeric_descending.svg', value: 'desk' },
           ]"
-          icon="sort_by_alpha"
           class="ml-auto"
           @input="$emit('sort', { timeZone: value, direction: $event })"
         />
@@ -71,7 +71,7 @@
           type="text"
           maxlength="20"
           placeholder="Type a title"
-          class="py-1 px-3 border border-grey-100 rounded-sm w-32"
+          class="py-1 px-3 border border-grey-100 rounded-sm w-28"
         />
         <input
           v-model="timePoint"
@@ -122,6 +122,10 @@ export default {
     sorting: {
       type: Object,
       required: true,
+    },
+    single: {
+      type: Boolean,
+      default: false,
     },
   },
   data: () => ({
@@ -228,6 +232,6 @@ export default {
   font-size: 16px !important;
 }
 .timezone {
-  min-width: 392px;
+  width: 360px;
 }
 </style>
