@@ -1,5 +1,5 @@
 <template>
-  <Modal v-on="$listeners">
+  <BaseModal v-on="$listeners">
     <div class="px-10">
       <h2 class="my-4 font-bold text-3xl">Are you sure?</h2>
       <div class="flex items-center justify-center gap-2 mb-4">
@@ -17,16 +17,16 @@
         </button>
       </div>
     </div>
-  </Modal>
+  </BaseModal>
 </template>
 
 <script>
-import Modal from "./Modal.vue";
+import BaseModal from './base/BaseModal.vue'
 
 export default {
-  name: "ConfirmRemovingModal",
+  name: 'ConfirmRemovingModal',
   components: {
-    Modal,
+    BaseModal,
   },
-};
+}
 </script>

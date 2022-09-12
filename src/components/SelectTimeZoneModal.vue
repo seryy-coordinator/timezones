@@ -1,9 +1,7 @@
 <template>
-  <Modal v-on="$listeners">
+  <BaseModal v-on="$listeners">
     <div class="px-10 w-[500px]">
-      <h2 class="my-4 font-bold text-3xl">
-        Enter and select the time zone you are looking for
-      </h2>
+      <h2 class="my-4 font-bold text-3xl">Enter and select the time zone you are looking for</h2>
       <div class="relative">
         <input
           v-model="searchText"
@@ -12,9 +10,7 @@
           @input="selected = null"
         />
         <div
-          v-if="
-            getFiltered.length && (!selected || searchText !== selected.title)
-          "
+          v-if="resultsDisplayed"
           class="absolute top-full left-0 right-0 flex flex-col gap-1 py-2 bg-white dropdown overflow-y-auto shadow-lg shadow-blue-500/50"
         >
           <div
@@ -43,44 +39,45 @@
         </button>
       </div>
     </div>
-  </Modal>
+  </BaseModal>
 </template>
 
 <script>
-import moment from "moment-timezone";
-import Modal from "./Modal.vue";
-import { refactorTimeZones } from "../api/utils";
+import moment from 'moment-timezone'
+import BaseModal from './base/BaseModal.vue'
+import { refactorTimeZones } from '../api/utils'
 
-const timeZones = refactorTimeZones(moment.tz.names());
+const timeZones = refactorTimeZones(moment.tz.names())
 
 export default {
-  name: "SelectTimeZoneModal",
+  name: 'SelectTimeZoneModal',
   components: {
-    Modal,
+    BaseModal,
   },
   data: () => ({
-    searchText: "",
+    searchText: '',
     selected: null,
     timeZones,
   }),
   computed: {
     getFiltered() {
       if (this.searchText) {
-        const searchText = this.searchText.toLowerCase();
-        return this.timeZones.filter((timeZone) =>
-          timeZone.title.toLowerCase().includes(searchText)
-        );
+        const searchText = this.searchText.toLowerCase()
+        return this.timeZones.filter((timeZone) => timeZone.title.toLowerCase().includes(searchText))
       }
-      return "";
+      return ''
+    },
+    resultsDisplayed() {
+      return this.getFiltered.length && (!this.selected || this.searchText !== this.selected.title)
     },
   },
   methods: {
     select(item) {
-      this.searchText = item.title;
-      this.selected = item;
+      this.searchText = item.title
+      this.selected = item
     },
   },
-};
+}
 </script>
 
 <style>

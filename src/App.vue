@@ -1,18 +1,18 @@
 <template>
   <div id="app">
-    <TimezoneList />
+    <TimeZoneList />
   </div>
 </template>
 
 <script>
-import TimezoneList from "./components/TimezoneList.vue";
+import TimeZoneList from './components/TimeZoneList.vue'
 
 export default {
-  name: "App",
+  name: 'App',
   components: {
-    TimezoneList,
+    TimeZoneList,
   },
-};
+}
 </script>
 
 <style></style>

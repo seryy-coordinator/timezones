@@ -6,9 +6,7 @@
   >
     <div class="bg-white border border-gray-100 p-1 rounded">
       <div class="flex justify-end">
-        <span class="material-icons cursor-pointer" @click="$emit('close')"
-          >close</span
-        >
+        <span class="material-icons cursor-pointer" @click="$emit('close')">close</span>
       </div>
       <slot></slot>
     </div>
@@ -17,6 +15,6 @@
 
 <script>
 export default {
-  name: "Modal",
-};
+  name: 'BaseModal',
+}
 </script>
